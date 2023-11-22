@@ -5,6 +5,7 @@ import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,6 +16,7 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.activity.result.ActivityResult;
 import androidx.activity.result.ActivityResultCallback;
@@ -66,7 +68,6 @@ public class InputFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.input_fragment, container, false);
 
-        SharedViewModel sharedViewModel = new ViewModelProvider(requireActivity()).get(SharedViewModel.class);
         Spinner spinner = rootView.findViewById(R.id.location_spinner);
 
         ArrayAdapter<String> adapter = new ArrayAdapter<>(
@@ -76,20 +77,7 @@ public class InputFragment extends Fragment {
                 android.R.layout.simple_spinner_dropdown_item);
 
         spinner.setAdapter(adapter);
-
-        spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
-                String selectedItem = items[i];
-                spinner.setSelection(i);
-                sharedViewModel.setSelectedLocation(selectedItem);
-            }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> adapterView) {
-                textView.setText("");
-            }
-        });
+        String selectedLocation = spinner.getSelectedItem().toString();
 
         Button selectImageBtn = rootView.findViewById(R.id.select_image_btn);
         imageView = rootView.findViewById(R.id.select_image);
@@ -127,8 +115,52 @@ public class InputFragment extends Fragment {
                 String minute = minuteEdit.getText().toString();
                 String cost = costEdit.getText().toString();
 
+                // 값이 비어있는지 확인하고 비어있으면 Toast를 통해 알림
+                if (year.isEmpty() || month.isEmpty() || day.isEmpty() || hour.isEmpty() || minute.isEmpty()) {
+                    showToast("숫자를 입력되지 않았습니다");
+                    return; // 빈 값이 있으면 더 이상 진행하지 않음
+                }
+                // year가 숫자가 아닌 경우 Toast를 통해 알림
+                if (!isNumeric(year)) {
+                    showToast("년도는 숫자로 입력되어야 합니다.");
+                    return; // 숫자가 아니면 더 이상 진행하지 않음
+                }
+
+                // month가 숫자가 아닌 경우 Toast를 통해 알림
+                if (!isNumeric(month)) {
+                    showToast("월은 숫자로 입력되어야 합니다.");
+                    return;
+                }
+
+                // day가 숫자가 아닌 경우 Toast를 통해 알림
+                if (!isNumeric(day)) {
+                    showToast("일은 숫자로 입력되어야 합니다.");
+                    return;
+                }
+
+                // hour가 숫자가 아닌 경우 Toast를 통해 알림
+                if (!isNumeric(hour)) {
+                    showToast("시간은 숫자로 입력되어야 합니다.");
+                    return;
+                }
+
+                // minute이 숫자가 아닌 경우 Toast를 통해 알림
+                if (!isNumeric(minute)) {
+                    showToast("분은 숫자로 입력되어야 합니다.");
+                    return;
+                }
+                
+                // cost가 숫자가 아닌 경우 Toast를 통해 알림
+                if (!isNumeric(cost)) {
+                    showToast("비용은 숫자로 입력되어야 합니다.");
+                    return; // 숫자가 아니면 더 이상 진행하지 않음
+                }
+
+
                 // 값들을 Bundle에 담아서 다른 프래그먼트로 전달
+                // 잘 전달됨
                 Bundle bundle = new Bundle();
+                bundle.putString("selectedLocation", selectedLocation);
                 bundle.putString("mealName", mealName);
                 bundle.putString("mealOpinion", mealOpinion);
                 bundle.putString("year", year);
@@ -138,11 +170,30 @@ public class InputFragment extends Fragment {
                 bundle.putString("minute", minute);
                 bundle.putString("cost", cost);
 
-                // SharedViewModel을 통해 데이터 전달
-                sharedViewModel.setFormData(bundle);
+                // CalendarFragment로 직접 데이터 전달
+                CalendarFragment calendarFragment = new CalendarFragment();
+                calendarFragment.setArguments(bundle);
+
+                // FragmentTransaction을 사용하여 CalendarFragment로 전환
+                requireActivity().getSupportFragmentManager().beginTransaction()
+                        .replace(R.id.fragment_linear, calendarFragment)
+                        .addToBackStack(null)
+                        .commit();
             }
         });
-
         return rootView;
+    }
+
+    private boolean isNumeric(String str) {
+        try {
+            Integer.parseInt(str);
+            return true;
+        } catch (NumberFormatException e) {
+            return false;
+        }
+    }
+
+    private void showToast(String message) {
+        Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show();
     }
 }

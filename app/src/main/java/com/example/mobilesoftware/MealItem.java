@@ -1,6 +1,7 @@
 package com.example.mobilesoftware;
 
 import android.os.Bundle;
+import java.util.Calendar;
 
 public class MealItem {
     private String mealName;
@@ -62,6 +63,21 @@ public class MealItem {
 
     public String getCost() {
         return cost;
+    }
+
+    // 수정된 메서드: year, month, day를 사용하여 Calendar 객체를 생성하여 반환
+    public Calendar getDate() {
+        // 예외 처리를 추가하여 유효한 숫자가 아닌 경우 기본값인 현재 날짜를 반환하도록 함
+        try {
+            Calendar calendar = Calendar.getInstance();
+            calendar.set(Calendar.YEAR, Integer.parseInt(year));
+            calendar.set(Calendar.MONTH, Integer.parseInt(month) - 1); // Calendar의 월은 0부터 시작하므로 1을 빼줍니다.
+            calendar.set(Calendar.DAY_OF_MONTH, Integer.parseInt(day));
+            return calendar;
+        } catch (NumberFormatException e) {
+            // 예외가 발생하면 기본값인 현재 날짜를 반환
+            return Calendar.getInstance();
+        }
     }
 
 }

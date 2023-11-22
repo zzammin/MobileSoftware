@@ -5,34 +5,40 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
+import android.widget.BaseAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
-
-import com.prolificinteractive.materialcalendarview.CalendarDay;
-import com.prolificinteractive.materialcalendarview.MaterialCalendarView;
-import com.prolificinteractive.materialcalendarview.OnDateSelectedListener;
-import com.prolificinteractive.materialcalendarview.OnRangeSelectedListener;
-import com.prolificinteractive.materialcalendarview.format.ArrayWeekDayFormatter;
-import com.prolificinteractive.materialcalendarview.format.MonthArrayTitleFormatter;
-import com.prolificinteractive.materialcalendarview.format.TitleFormatter;
-import com.prolificinteractive.materialcalendarview.format.WeekDayFormatter;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 
-import java.time.format.DateTimeFormatter;
+import com.prolificinteractive.materialcalendarview.CalendarDay;
+import com.prolificinteractive.materialcalendarview.MaterialCalendarView;
+import com.prolificinteractive.materialcalendarview.OnDateSelectedListener;
+import com.prolificinteractive.materialcalendarview.format.ArrayWeekDayFormatter;
+import com.prolificinteractive.materialcalendarview.format.MonthArrayTitleFormatter;
+import com.prolificinteractive.materialcalendarview.format.TitleFormatter;
+
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class CalendarFragment extends Fragment {
-    private final String TAG = this.getClass().getSimpleName();
 
+    // 날짜별 데이터를 저장하는 맵
+    private Map<CalendarDay, List<String>> dataMap = new HashMap<>();
     MaterialCalendarView calendarView;
     TextView dateText;
     ListView listView;
+
+    String mealName;
+
+    // 초기에는 빈 데이터 리스트로 어댑터를 설정
+    List<String> dataList = new ArrayList<>();
+    ListAdapter adapter = new ListAdapter(dataList);
 
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         ViewGroup rootView = (ViewGroup) inflater.inflate(R.layout.calendar_fragment, container, false);
@@ -69,7 +75,8 @@ public class CalendarFragment extends Fragment {
                 // TextView에 선택한 날짜 설정
                 dateText.setText(formattedDate);
 
-                // 여기서 선택한 날짜에 대한 추가적인 작업을 수행할 수 있습니다.
+                // 선택한 날짜에 해당하는 데이터를 리스트뷰에 표시
+                updateListViewForDate(date, getArguments());
             }
         });
 
@@ -92,40 +99,99 @@ public class CalendarFragment extends Fragment {
             }
         });
 
+        // 초기에는 빈 데이터 리스트로 어댑터를 설정
+        listView.setAdapter(adapter);
+
         return rootView;
     }
 
-    List<com.example.mobilesoftware.MealItem> mealItems; // MealItem은 식사 데이터를 나타내는 클래스로 가정합니다
+    private void updateListViewForDate(CalendarDay date, Bundle bundle) {
+        // 클릭한 날짜의 연, 월, 일 값 가져오기
+        int year = date.getYear();
+        int month = date.getMonth();
+        int day = date.getDay();
 
-    public void setMealItems(List<com.example.mobilesoftware.MealItem> mealItems) {
-        this.mealItems = mealItems;
-        // ListView를 필터된 데이터로 업데이트하는 메서드 호출
-        updateListView();
-    }
+        // CalendarDay 객체 생성
+        CalendarDay selectedDate = CalendarDay.from(year, month, day);
 
-    private void updateListView() {
-        // 캘린더에서 선택한 날짜를 가져옵니다.
-        Calendar selectedDate = calendarView.getSelectedDate().getCalendar();
-        int year = selectedDate.get(Calendar.YEAR);
-        int month = selectedDate.get(Calendar.MONTH) + 1;
-        int day = selectedDate.get(Calendar.DAY_OF_MONTH);
+        // 선택한 날짜에 해당하는 데이터를 가져옴
+        List<String> dataList = dataMap.get(selectedDate);
 
-        // 지정된 조건에 따라 식사 항목을 필터링합니다.
-        List<String> filteredMeals = new ArrayList<>();
-        for (com.example.mobilesoftware.MealItem meal : mealItems) {
-            int mealHour = Integer.parseInt(meal.getHour());
-            int mealMinute = Integer.parseInt(meal.getMinute());
-
-            if ((mealHour <= 11 && mealMinute <= 30) ||
-                    (mealHour >= 11 && mealHour < 14 && mealMinute >= 30) ||
-                    (mealHour >= 17 && mealHour < 18)) {
-                filteredMeals.add(meal.getMealName());
-            }
+        // 데이터가 없으면 빈 리스트로 초기화
+        if (dataList == null) {
+            dataList = new ArrayList<>();
         }
 
-        // 필터된 데이터로 ListView를 업데이트합니다.
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(
-                requireContext(), android.R.layout.simple_list_item_1, filteredMeals);
-        listView.setAdapter(adapter);
+        // mealName이 null이 아니고 비어있지 않으면 dataList에 추가
+        String mealName = bundle.getString("mealName");
+        if (mealName != null && !mealName.isEmpty()) {
+            dataList.add("Location: " + bundle.getString("selectedLocation") + ", Meal: " + mealName);
+        }
+
+        // 데이터를 맵에 저장
+        dataMap.put(selectedDate, dataList);
+
+        // 어댑터에 데이터 설정
+        adapter.setData(dataList);
+        adapter.notifyDataSetChanged();
+
+        // 처음에는 리스트뷰를 숨기고, 데이터가 있을 때만 보이도록 설정
+        if (!dataList.isEmpty()) {
+            listView.setVisibility(View.VISIBLE);
+        } else {
+            listView.setVisibility(View.GONE);
+        }
+    }
+
+    public class ListAdapter extends BaseAdapter {
+        private List<String> data;
+        private int maxItems = 3;
+
+        public ListAdapter(List<String> data){
+            this.data=data;
+        }
+
+        // ListAdapter에 데이터 설정하는 메서드 추가
+        public void setData(List<String> data) {
+            this.data = data;
+        }
+
+        @Override
+        public int getCount() {
+            // 어댑터의 getCount() 메서드를 통해 항목 수를 제한
+            return Math.min(data.size(), maxItems);
+        }
+
+        @Override
+        public Object getItem(int position) {
+            return data.get(position);
+        }
+
+        @Override
+        public long getItemId(int position) {
+            return position;
+        }
+
+        @Override
+        public View getView(int position, View convertView, ViewGroup parent) {
+            // 간단한 예제로 TextView를 사용하여 데이터를 표시
+            TextView textView;
+            if (convertView == null) {
+                LayoutInflater inflater = LayoutInflater.from(parent.getContext());
+                textView = new TextView(parent.getContext());
+                textView.setTextSize(16); // 텍스트 크기 조절
+                convertView = textView;
+            } else {
+                textView = (TextView) convertView;
+            }
+
+            // 데이터 설정
+            String mealData = (String) getItem(position);
+
+            // 텍스트 설정
+            textView.setText(mealData);
+
+            return convertView;
+        }
     }
 }
