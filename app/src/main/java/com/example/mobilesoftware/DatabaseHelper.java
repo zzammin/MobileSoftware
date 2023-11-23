@@ -28,6 +28,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String COLUMN_MINUTE = "minute";
     private static final String COLUMN_COST = "cost";
     private static final String COLUMN_CALORIE = "calorie"; // 칼로리 필드 추가
+    private static final String COLUMN_IMAGE_URI = "image_uri"; // 이미지 URI 필드 추가
 
     // 생성 쿼리
     private static final String CREATE_MEALS_TABLE = "CREATE TABLE " + TABLE_MEALS + " (" +
@@ -41,7 +42,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             COLUMN_HOUR + " TEXT," +
             COLUMN_MINUTE + " TEXT," +
             COLUMN_COST + " TEXT," +
-            COLUMN_CALORIE + " INTEGER);";
+            COLUMN_CALORIE + " INTEGER," +
+            COLUMN_IMAGE_URI + " TEXT);";
 
     public DatabaseHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -58,8 +60,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         onCreate(db);
     }
 
-    // 데이터베이스에 새로운 식사 기록 추가
-    public long addMeal(String location, String mealName, String mealOpinion, String year, String month, String day, String hour, String minute, String cost) {
+    // 데이터베이스에 새로운 식사 기록 추가 (이미지 URI 포함, 칼로리 추가)
+    public long addMeal(String location, String mealName, String mealOpinion, String year, String month, String day, String hour, String minute, String cost, String imageUri, int calorie) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put(COLUMN_LOCATION, location);
@@ -71,10 +73,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         values.put(COLUMN_HOUR, hour);
         values.put(COLUMN_MINUTE, minute);
         values.put(COLUMN_COST, cost);
-
-        // 300에서 700까지의 랜덤한 칼로리 값을 생성합니다.
-        int calorie = (int) (Math.random() * 401) + 300;
         values.put(COLUMN_CALORIE, calorie);
+        values.put(COLUMN_IMAGE_URI, imageUri);
 
         long result = db.insert(TABLE_MEALS, null, values);
         db.close();
@@ -87,7 +87,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return db.query(TABLE_MEALS, null, null, null, null, null, null);
     }
 
-    // DatabaseHelper 클래스에 getMealsForDate 메서드 추가
+    // 해당 날짜의 식사 기록 가져오기
     public List<Meal> getMealsForDate(int year, int month, int day) {
         List<Meal> mealList = new ArrayList<>();
         SQLiteDatabase db = this.getReadableDatabase();
@@ -103,7 +103,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 COLUMN_HOUR,
                 COLUMN_MINUTE,
                 COLUMN_COST,
-                COLUMN_CALORIE
+                COLUMN_CALORIE,
+                COLUMN_IMAGE_URI
         };
 
         String selection = COLUMN_YEAR + " = ? AND " +
@@ -133,6 +134,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             int mealMinuteIndex = cursor.getColumnIndex(COLUMN_MINUTE);
             int mealCostIndex = cursor.getColumnIndex(COLUMN_COST);
             int mealCalorieIndex = cursor.getColumnIndex(COLUMN_CALORIE);
+            int mealImageUriIndex = cursor.getColumnIndex(COLUMN_IMAGE_URI);
 
             do {
                 // 열의 인덱스를 통해 데이터를 가져옴
@@ -146,8 +148,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 String mealMinute = cursor.getString(mealMinuteIndex);
                 String mealCost = cursor.getString(mealCostIndex);
                 int mealCalorie = cursor.getInt(mealCalorieIndex);
+                String mealImageUri = cursor.getString(mealImageUriIndex);
 
-                Meal meal = new Meal(location, mealName, mealOpinion, mealYear, mealMonth, mealDay, mealHour, mealMinute, mealCost, mealCalorie);
+                Meal meal = new Meal(location, mealName, mealOpinion, mealYear, mealMonth, mealDay, mealHour, mealMinute, mealCost, mealCalorie, mealImageUri);
                 mealList.add(meal);
             } while (cursor.moveToNext());
 

@@ -15,9 +15,9 @@ public class Meal implements Parcelable {
     private String minute;
     private String cost;
     private int calorie;
+    private String imageUri; // 이미지 URI를 저장할 필드 추가
 
-
-    public Meal(String location, String mealName, String mealOpinion, String year, String month, String day, String hour, String minute, String cost, int calorie) {
+    public Meal(String location, String mealName, String mealOpinion, String year, String month, String day, String hour, String minute, String cost, int calorie, String imageUri) {
         this.location = location;
         this.mealName = mealName;
         this.mealOpinion = mealOpinion;
@@ -28,6 +28,7 @@ public class Meal implements Parcelable {
         this.minute = minute;
         this.cost = cost;
         this.calorie = calorie;
+        this.imageUri = imageUri;
     }
 
     protected Meal(Parcel in) {
@@ -41,6 +42,7 @@ public class Meal implements Parcelable {
         minute = in.readString();
         cost = in.readString();
         calorie = in.readInt();
+        imageUri = in.readString();
     }
 
     public static final Creator<Meal> CREATOR = new Creator<Meal>() {
@@ -57,6 +59,10 @@ public class Meal implements Parcelable {
 
     public String getLocation() {
         return location;
+    }
+
+    public String getImageUri() {
+        return imageUri;
     }
 
     public String getMealName() {
@@ -112,5 +118,6 @@ public class Meal implements Parcelable {
         dest.writeString(minute);
         dest.writeString(cost);
         dest.writeInt(calorie);
+        dest.writeString(imageUri);
     }
 }

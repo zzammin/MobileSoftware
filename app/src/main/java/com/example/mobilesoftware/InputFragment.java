@@ -1,24 +1,18 @@
 package com.example.mobilesoftware;
 
-import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.provider.MediaStore;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Spinner;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.result.ActivityResult;
@@ -27,11 +21,9 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.fragment.app.Fragment;
 
-import com.prolificinteractive.materialcalendarview.CalendarDay;
-
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.Calendar;
+import java.util.Random;
 
 public class InputFragment extends Fragment {
 
@@ -47,6 +39,8 @@ public class InputFragment extends Fragment {
     EditText hourEdit;
     EditText minuteEdit;
     EditText costEdit;
+    // 추가된 Calorie 변수
+    int calorie;
 
     // DatabaseHelper 객체 추가
     private DatabaseHelper databaseHelper;
@@ -107,6 +101,8 @@ public class InputFragment extends Fragment {
         hourEdit = rootView.findViewById(R.id.hour);
         minuteEdit = rootView.findViewById(R.id.minute);
         costEdit = rootView.findViewById(R.id.cost_edit);
+        // 추가된 Calorie 변수 초기화
+        calorie = generateRandomCalorie();
 
         // DatabaseHelper 초기화
         databaseHelper = new DatabaseHelper(requireContext());
@@ -123,6 +119,7 @@ public class InputFragment extends Fragment {
                 String hour = hourEdit.getText().toString();
                 String minute = minuteEdit.getText().toString();
                 String cost = costEdit.getText().toString();
+                String imageUri = uri != null ? uri.toString() : "";
 
                 if (year.isEmpty() || month.isEmpty() || day.isEmpty() || hour.isEmpty() || minute.isEmpty()) {
                     showToast("숫자를 입력되지 않았습니다");
@@ -135,7 +132,7 @@ public class InputFragment extends Fragment {
                 }
 
                 // SQLite 데이터베이스에 데이터 추가
-                long result = databaseHelper.addMeal(selectedLocation, mealName, mealOpinion, year, month, day, hour, minute, cost);
+                long result = databaseHelper.addMeal(selectedLocation, mealName, mealOpinion, year, month, day, hour, minute, cost, imageUri, calorie);
 
                 if (result != -1) {
                     showToast("식사 기록이 추가되었습니다.");
@@ -158,6 +155,12 @@ public class InputFragment extends Fragment {
 
     private void showToast(String message) {
         Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show();
+    }
+
+    // 랜덤한 칼로리 값 생성
+    private int generateRandomCalorie() {
+        Random random = new Random();
+        return random.nextInt(501) + 300; // 300에서 800 사이의 랜덤한 값
     }
 
     @Override
