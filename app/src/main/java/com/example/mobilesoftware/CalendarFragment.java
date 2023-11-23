@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -11,6 +12,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentResultListener;
+import androidx.fragment.app.FragmentTransaction;
 
 import com.prolificinteractive.materialcalendarview.CalendarDay;
 import com.prolificinteractive.materialcalendarview.MaterialCalendarView;
@@ -97,6 +99,24 @@ public class CalendarFragment extends Fragment {
         } else {
             listView.setVisibility(View.GONE);
         }
+
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                Meal selectedMeal = dataList.get(position);
+
+                // Open MealFragment with selected Meal
+                openMealFragment(selectedMeal);
+            }
+        });
+    }
+
+    private void openMealFragment(Meal meal) {
+        FragmentTransaction transaction = getParentFragmentManager().beginTransaction();
+        MealFragment mealFragment = MealFragment.newInstance(meal);
+        transaction.replace(R.id.fragment_linear, mealFragment);
+        transaction.addToBackStack(null);
+        transaction.commit();
     }
 
     public class ListAdapter extends BaseAdapter {

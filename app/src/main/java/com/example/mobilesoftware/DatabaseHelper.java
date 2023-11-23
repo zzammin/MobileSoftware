@@ -3,7 +3,6 @@ package com.example.mobilesoftware;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
-import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
@@ -28,6 +27,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String COLUMN_HOUR = "hour";
     private static final String COLUMN_MINUTE = "minute";
     private static final String COLUMN_COST = "cost";
+    private static final String COLUMN_CALORIE = "calorie"; // 칼로리 필드 추가
 
     // 생성 쿼리
     private static final String CREATE_MEALS_TABLE = "CREATE TABLE " + TABLE_MEALS + " (" +
@@ -40,7 +40,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             COLUMN_DAY + " TEXT," +
             COLUMN_HOUR + " TEXT," +
             COLUMN_MINUTE + " TEXT," +
-            COLUMN_COST + " TEXT);";
+            COLUMN_COST + " TEXT," +
+            COLUMN_CALORIE + " INTEGER);";
 
     public DatabaseHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -71,6 +72,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         values.put(COLUMN_MINUTE, minute);
         values.put(COLUMN_COST, cost);
 
+        // 300에서 700까지의 랜덤한 칼로리 값을 생성합니다.
+        int calorie = (int) (Math.random() * 401) + 300;
+        values.put(COLUMN_CALORIE, calorie);
+
         long result = db.insert(TABLE_MEALS, null, values);
         db.close();
         return result;
@@ -97,7 +102,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 COLUMN_DAY,
                 COLUMN_HOUR,
                 COLUMN_MINUTE,
-                COLUMN_COST
+                COLUMN_COST,
+                COLUMN_CALORIE
         };
 
         String selection = COLUMN_YEAR + " = ? AND " +
@@ -126,6 +132,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             int mealHourIndex = cursor.getColumnIndex(COLUMN_HOUR);
             int mealMinuteIndex = cursor.getColumnIndex(COLUMN_MINUTE);
             int mealCostIndex = cursor.getColumnIndex(COLUMN_COST);
+            int mealCalorieIndex = cursor.getColumnIndex(COLUMN_CALORIE);
 
             do {
                 // 열의 인덱스를 통해 데이터를 가져옴
@@ -138,8 +145,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 String mealHour = cursor.getString(mealHourIndex);
                 String mealMinute = cursor.getString(mealMinuteIndex);
                 String mealCost = cursor.getString(mealCostIndex);
+                int mealCalorie = cursor.getInt(mealCalorieIndex);
 
-                Meal meal = new Meal(location, mealName, mealOpinion, mealYear, mealMonth, mealDay, mealHour, mealMinute, mealCost);
+                Meal meal = new Meal(location, mealName, mealOpinion, mealYear, mealMonth, mealDay, mealHour, mealMinute, mealCost, mealCalorie);
                 mealList.add(meal);
             } while (cursor.moveToNext());
 
@@ -149,8 +157,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         // 디버그 문 추가
         Log.d("databaseHelper", "getMealsForDate: " + mealList.size() + " meals found for " + year + "-" + month + "-" + day);
 
-
         return mealList;
     }
 }
-

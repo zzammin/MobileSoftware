@@ -1,6 +1,9 @@
 package com.example.mobilesoftware;
 
-public class Meal {
+import android.os.Parcel;
+import android.os.Parcelable;
+
+public class Meal implements Parcelable {
 
     private String location;
     private String mealName;
@@ -11,8 +14,10 @@ public class Meal {
     private String hour;
     private String minute;
     private String cost;
+    private int calorie;
 
-    public Meal(String location, String mealName, String mealOpinion, String year, String month, String day, String hour, String minute, String cost) {
+
+    public Meal(String location, String mealName, String mealOpinion, String year, String month, String day, String hour, String minute, String cost, int calorie) {
         this.location = location;
         this.mealName = mealName;
         this.mealOpinion = mealOpinion;
@@ -22,9 +27,34 @@ public class Meal {
         this.hour = hour;
         this.minute = minute;
         this.cost = cost;
+        this.calorie = calorie;
     }
 
-    // 게터 메서드들 추가
+    protected Meal(Parcel in) {
+        location = in.readString();
+        mealName = in.readString();
+        mealOpinion = in.readString();
+        year = in.readString();
+        month = in.readString();
+        day = in.readString();
+        hour = in.readString();
+        minute = in.readString();
+        cost = in.readString();
+        calorie = in.readInt();
+    }
+
+    public static final Creator<Meal> CREATOR = new Creator<Meal>() {
+        @Override
+        public Meal createFromParcel(Parcel in) {
+            return new Meal(in);
+        }
+
+        @Override
+        public Meal[] newArray(int size) {
+            return new Meal[size];
+        }
+    };
+
     public String getLocation() {
         return location;
     }
@@ -59,5 +89,28 @@ public class Meal {
 
     public String getCost() {
         return cost;
+    }
+
+    public int getCalorie() {
+        return calorie;
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(location);
+        dest.writeString(mealName);
+        dest.writeString(mealOpinion);
+        dest.writeString(year);
+        dest.writeString(month);
+        dest.writeString(day);
+        dest.writeString(hour);
+        dest.writeString(minute);
+        dest.writeString(cost);
+        dest.writeInt(calorie);
     }
 }
