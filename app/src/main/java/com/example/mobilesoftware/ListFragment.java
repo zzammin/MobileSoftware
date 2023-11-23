@@ -18,22 +18,6 @@ public class ListFragment extends Fragment {
         View rootView = inflater.inflate(R.layout.list_fragment, container, false);
 
         textView = rootView.findViewById(R.id.textView12);
-        SharedViewModel sharedViewModel = new ViewModelProvider(requireActivity()).get(SharedViewModel.class);
-
-        sharedViewModel.getSelectedLocation().observe(getViewLifecycleOwner(), new Observer<String>() {
-            @Override
-            public void onChanged(String selectedLocation) {
-                textView.setText(selectedLocation);
-            }
-        });
-
-        // Observe the selected image URI
-        sharedViewModel.getSelectedImageUri().observe(getViewLifecycleOwner(), new Observer<Uri>() {
-            @Override
-            public void onChanged(Uri selectedImageUri) {
-                // Do something with the selected image URI
-            }
-        });
 
         // ...
 

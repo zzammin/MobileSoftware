@@ -1,9 +1,12 @@
 package com.example.mobilesoftware;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -23,16 +26,18 @@ import androidx.activity.result.ActivityResultCallback;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.ViewModelProvider;
+
+import com.prolificinteractive.materialcalendarview.CalendarDay;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.Calendar;
 
 public class InputFragment extends Fragment {
-    String[] items = {"상록원 1층","상록원 2층","상록원 3층","기숙사 식당"};
+
+    String[] items = {"상록원 1층", "상록원 2층", "상록원 3층", "기숙사 식당"};
     Uri uri;
     ImageView imageView;
-    TextView textView;
 
     EditText mealNameEdit;
     EditText mealOpinionEdit;
@@ -42,6 +47,9 @@ public class InputFragment extends Fragment {
     EditText hourEdit;
     EditText minuteEdit;
     EditText costEdit;
+
+    // DatabaseHelper 객체 추가
+    private DatabaseHelper databaseHelper;
 
     private final ActivityResultLauncher<Intent> startActivityForResult = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
@@ -71,7 +79,7 @@ public class InputFragment extends Fragment {
         Spinner spinner = rootView.findViewById(R.id.location_spinner);
 
         ArrayAdapter<String> adapter = new ArrayAdapter<>(
-                requireContext(), android.R.layout.simple_spinner_item,items);
+                requireContext(), android.R.layout.simple_spinner_item, items);
 
         adapter.setDropDownViewResource(
                 android.R.layout.simple_spinner_dropdown_item);
@@ -100,12 +108,13 @@ public class InputFragment extends Fragment {
         minuteEdit = rootView.findViewById(R.id.minute);
         costEdit = rootView.findViewById(R.id.cost_edit);
 
-        // 하단의 입력 버튼 누르면 모두 전달
+        // DatabaseHelper 초기화
+        databaseHelper = new DatabaseHelper(requireContext());
+
         Button inputBtn = rootView.findViewById(R.id.input_btn);
         inputBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                // 값들을 읽어와서 다른 프래그먼트로 전달하는 코드 추가
                 String mealName = mealNameEdit.getText().toString();
                 String mealOpinion = mealOpinionEdit.getText().toString();
                 String year = yearEdit.getText().toString();
@@ -115,70 +124,24 @@ public class InputFragment extends Fragment {
                 String minute = minuteEdit.getText().toString();
                 String cost = costEdit.getText().toString();
 
-                // 값이 비어있는지 확인하고 비어있으면 Toast를 통해 알림
                 if (year.isEmpty() || month.isEmpty() || day.isEmpty() || hour.isEmpty() || minute.isEmpty()) {
                     showToast("숫자를 입력되지 않았습니다");
-                    return; // 빈 값이 있으면 더 이상 진행하지 않음
-                }
-                // year가 숫자가 아닌 경우 Toast를 통해 알림
-                if (!isNumeric(year)) {
-                    showToast("년도는 숫자로 입력되어야 합니다.");
-                    return; // 숫자가 아니면 더 이상 진행하지 않음
-                }
-
-                // month가 숫자가 아닌 경우 Toast를 통해 알림
-                if (!isNumeric(month)) {
-                    showToast("월은 숫자로 입력되어야 합니다.");
                     return;
                 }
 
-                // day가 숫자가 아닌 경우 Toast를 통해 알림
-                if (!isNumeric(day)) {
-                    showToast("일은 숫자로 입력되어야 합니다.");
+                if (!isNumeric(year) || !isNumeric(month) || !isNumeric(day) || !isNumeric(hour) || !isNumeric(minute) || !isNumeric(cost)) {
+                    showToast("숫자를 입력되지 않았습니다");
                     return;
                 }
 
-                // hour가 숫자가 아닌 경우 Toast를 통해 알림
-                if (!isNumeric(hour)) {
-                    showToast("시간은 숫자로 입력되어야 합니다.");
-                    return;
+                // SQLite 데이터베이스에 데이터 추가
+                long result = databaseHelper.addMeal(selectedLocation, mealName, mealOpinion, year, month, day, hour, minute, cost);
+
+                if (result != -1) {
+                    showToast("식사 기록이 추가되었습니다.");
+                } else {
+                    showToast("식사 기록 추가 실패");
                 }
-
-                // minute이 숫자가 아닌 경우 Toast를 통해 알림
-                if (!isNumeric(minute)) {
-                    showToast("분은 숫자로 입력되어야 합니다.");
-                    return;
-                }
-                
-                // cost가 숫자가 아닌 경우 Toast를 통해 알림
-                if (!isNumeric(cost)) {
-                    showToast("비용은 숫자로 입력되어야 합니다.");
-                    return; // 숫자가 아니면 더 이상 진행하지 않음
-                }
-
-
-                // 값들을 Bundle에 담아서 다른 프래그먼트로 전달
-                // 잘 전달됨
-                Bundle bundle = new Bundle();
-                bundle.putString("selectedLocation", selectedLocation);
-                bundle.putString("mealName", mealName);
-                bundle.putString("mealOpinion", mealOpinion);
-                bundle.putString("year", year);
-                bundle.putString("month", month);
-                bundle.putString("day", day);
-                bundle.putString("hour", hour);
-                bundle.putString("minute", minute);
-                bundle.putString("cost", cost);
-
-                // CalendarFragment로 직접 데이터 전달
-                CalendarFragment calendarFragment = new CalendarFragment();
-                calendarFragment.setArguments(bundle);
-
-                // FragmentTransaction을 사용하여 CalendarFragment로 전환
-                requireActivity().getSupportFragmentManager().beginTransaction()
-                        .replace(R.id.fragment_linear, calendarFragment)
-                        .addToBackStack(null)
-                        .commit();
             }
         });
         return rootView;
@@ -195,5 +158,14 @@ public class InputFragment extends Fragment {
 
     private void showToast(String message) {
         Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void onDestroyView() {
+        // DatabaseHelper 사용 후 반드시 close
+        if (databaseHelper != null) {
+            databaseHelper.close();
+        }
+        super.onDestroyView();
     }
 }
