@@ -1,8 +1,8 @@
 package com.example.mobilesoftware;
 
-import android.Manifest;
 import android.content.pm.PackageManager;
-import android.net.Uri;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -15,6 +15,9 @@ import androidx.annotation.Nullable;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
+import com.bumptech.glide.Glide;
+import java.util.Calendar;
+import java.util.List;
 
 public class MealFragment extends Fragment {
 
@@ -31,6 +34,8 @@ public class MealFragment extends Fragment {
     private TextView textMinute;
     private TextView textCost;
     private TextView textCalorie;
+    private TextView textMealtime;
+    private TextView textMealType;
     private ImageView imageView;
 
     public static MealFragment newInstance(Meal meal) {
@@ -55,12 +60,13 @@ public class MealFragment extends Fragment {
         textMinute = rootView.findViewById(R.id.textMinute);
         textCost = rootView.findViewById(R.id.textCost);
         textCalorie = rootView.findViewById(R.id.textCalorie);
+        textMealtime = rootView.findViewById(R.id.textMealtime);
+        textMealType = rootView.findViewById(R.id.textMealType); // Add this line
         imageView = rootView.findViewById(R.id.imageMeal);
 
         if (getArguments() != null) {
             Meal meal = getArguments().getParcelable(ARG_MEAL);
             if (meal != null) {
-                // Display Meal information in TextViews
                 textLocation.setText("Location: " + meal.getLocation());
                 textMealName.setText("Meal Name: " + meal.getMealName());
                 textMealOpinion.setText("Meal Opinion: " + meal.getMealOpinion());
@@ -71,42 +77,42 @@ public class MealFragment extends Fragment {
                 textMinute.setText("Minute: " + meal.getMinute());
                 textCost.setText("Cost: " + meal.getCost());
                 textCalorie.setText("Calorie: " + meal.getCalorie());
+                textMealtime.setText("Mealtime: " + meal.getMealTime());
+                textMealType.setText("Meal Type: " + meal.getMealType()); // Add this line
 
-                // Load image from Uri into ImageView
-                if (!meal.getImageUri().isEmpty()) {
-                    // 이미지를 설정하기 전에 권한을 확인하고 요청
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                        checkAndRequestPermission();
-                    }
-                }
+//            if (meal.getImage() != null && meal.getImage().length > 0) {
+//                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+//                    checkAndRequestPermission();
+//                }
+//            }
             }
         }
 
         return rootView;
     }
 
-    private void checkAndRequestPermission() {
-        if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.READ_EXTERNAL_STORAGE)
-                != PackageManager.PERMISSION_GRANTED) {
-            // 권한이 없을 경우 권한 요청
-            ActivityCompat.requestPermissions(requireActivity(),
-                    new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
-                    REQUEST_STORAGE_PERMISSION);
-        } else {
-            // 이미 권한이 부여된 경우
-            // 이미지 설정 등의 작업 수행
-            loadImage();
-        }
+//    private void checkAndRequestPermission() {
+//        if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+//            ActivityCompat.requestPermissions(requireActivity(),
+//                    new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
+//                    REQUEST_STORAGE_PERMISSION);
+//        } else {
+//            loadImage();
+//        }
+//    }
+
+    private Bitmap byteArrayToBitmap(byte[] byteArray) {
+        return BitmapFactory.decodeByteArray(byteArray, 0, byteArray.length);
     }
 
     private void loadImage() {
-        // 이미지를 설정하는 코드 추가
-        // 이 메서드는 이미 권한이 부여된 상태에서만 호출되어야 함
-        // 예: 이미지를 외부 저장소에서 로드하여 ImageView에 표시
         Meal meal = getArguments().getParcelable(ARG_MEAL);
-        if (meal != null && !meal.getImageUri().isEmpty()) {
-            Uri imageUri = Uri.parse(meal.getImageUri());
-            imageView.setImageURI(imageUri);
+        if (meal != null && meal.getImage() != null && meal.getImage().length > 0) {
+            String base64Image = new String(meal.getImage());
+            byte[] decodedImage = DatabaseHelper.decodeBase64ToByteArray(base64Image);
+
+            Bitmap bitmap = byteArrayToBitmap(decodedImage);
+            imageView.setImageBitmap(bitmap);
         }
     }
 
@@ -115,14 +121,14 @@ public class MealFragment extends Fragment {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
 
         if (requestCode == REQUEST_STORAGE_PERMISSION) {
-            // 권한 요청 결과 처리
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                // 권한이 승인된 경우
-                loadImage(); // 이미지 설정 등의 작업 수행
-            } else {
-                // 권한이 거부된 경우
-                // 사용자에게 권한이 필요한 이유를 설명하거나 다른 조치를 취할 수 있음
+                loadImage();
             }
         }
     }
 }
+
+
+
+
+

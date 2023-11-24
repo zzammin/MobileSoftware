@@ -121,7 +121,6 @@ public class CalendarFragment extends Fragment {
 
     public class ListAdapter extends BaseAdapter {
         private List<Meal> data;
-        private int maxItems = 3;
 
         public ListAdapter(List<Meal> data) {
             this.data = data;
@@ -134,8 +133,7 @@ public class CalendarFragment extends Fragment {
 
         @Override
         public int getCount() {
-            // 어댑터의 getCount() 메서드를 통해 항목 수를 제한
-            return Math.min(data.size(), maxItems);
+            return data.size();
         }
 
         @Override
@@ -148,6 +146,7 @@ public class CalendarFragment extends Fragment {
             return position;
         }
 
+        // ListAdapter 클래스의 getView 메서드 수정
         @Override
         public View getView(int position, View convertView, ViewGroup parent) {
             // 간단한 예제로 TextView를 사용하여 데이터를 표시
@@ -165,10 +164,14 @@ public class CalendarFragment extends Fragment {
             Meal meal = (Meal) getItem(position);
 
             // 텍스트 설정
-            // 예시로 meal.getName()을 사용했지만, 실제로는 필요한 정보를 선택하여 추가해야 합니다.
-            textView.setText(meal.getMealName());
+            if ("식사".equals(meal.getMealType())) {
+                textView.setText(meal.getMealTime() + " - " + meal.getMealName());
+            } else if ("음료".equals(meal.getMealType())) {
+                textView.setText(meal.getMealType() + " - " + meal.getMealName());
+            }
 
             return convertView;
         }
     }
+
 }
