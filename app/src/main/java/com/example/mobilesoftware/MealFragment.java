@@ -5,6 +5,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -78,7 +79,9 @@ public class MealFragment extends Fragment {
                 textCost.setText("Cost: " + meal.getCost());
                 textCalorie.setText("Calorie: " + meal.getCalorie());
                 textMealtime.setText("Mealtime: " + meal.getMealTime());
-                textMealType.setText("Meal Type: " + meal.getMealType()); // Add this line
+                textMealType.setText("Meal Type: " + meal.getMealType());
+
+                Log.d("image",""+meal.getImage());
 
 //            if (meal.getImage() != null && meal.getImage().length > 0) {
 //                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -87,6 +90,7 @@ public class MealFragment extends Fragment {
 //            }
             }
         }
+
 
         return rootView;
     }
