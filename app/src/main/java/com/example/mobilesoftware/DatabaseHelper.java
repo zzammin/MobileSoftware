@@ -5,7 +5,6 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.util.Base64;
 import android.util.Log;
 
 import java.util.ArrayList;
@@ -29,7 +28,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String COLUMN_MINUTE = "minute";
     private static final String COLUMN_COST = "cost";
     private static final String COLUMN_CALORIE = "calorie";
-    private static final String COLUMN_IMAGE = "image";
     private static final String COLUMN_MEALTIME = "mealtime";
     private static final String COLUMN_MEAL_TYPE = "meal_type"; // 새로운 열 추가
 
@@ -46,7 +44,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             COLUMN_MINUTE + " TEXT," +
             COLUMN_COST + " TEXT," +
             COLUMN_CALORIE + " INTEGER," +
-            COLUMN_IMAGE + " BLOB," +
             COLUMN_MEALTIME + " TEXT," +
             COLUMN_MEAL_TYPE + " TEXT);"; // 새로운 열 추가
 
@@ -65,8 +62,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         onCreate(db);
     }
 
-    // 데이터베이스에 새로운 식사 기록 추가 (이미지 포함, 칼로리 추가, MealType 추가)
-    public long addMeal(String location, String mealName, String mealOpinion, String year, String month, String day, String hour, String minute, String cost, byte[] image, int calorie, String mealType) {
+    // 데이터베이스에 새로운 식사 기록 추가 (이미지를 데이터베이스에 저장하지 않음)
+    public long addMeal(String location, String mealName, String mealOpinion, String year, String month, String day, String hour, String minute, String cost, int calorie, String mealType) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put(COLUMN_LOCATION, location);
@@ -84,12 +81,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         String mealtime = calculateMealtime(hour);
         values.put(COLUMN_MEALTIME, mealtime);
 
-        // 이미지를 Base64로 인코딩하여 저장
-        if (image != null) {
-            String base64Image = encodeImageToBase64(image);
-            values.put(COLUMN_IMAGE, base64Image);
-        }
-
         // MealType 추가
         values.put(COLUMN_MEAL_TYPE, mealType);
 
@@ -97,6 +88,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.close();
         return result;
     }
+
 
     // hour 값을 기반으로 mealtime 계산
     private String calculateMealtime(String hour) {
@@ -109,21 +101,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             return "석식";
         }
         return "";
-    }
-
-    private String encodeImageToBase64(byte[] image) {
-        if (image != null) {
-            return Base64.encodeToString(image, Base64.DEFAULT);
-        }
-        return null;
-    }
-
-    // Base64 인코딩된 이미지를 디코딩하여 바이트 배열로 변환
-    public static byte[] decodeBase64ToByteArray(String base64Image) {
-        if (base64Image != null) {
-            return Base64.decode(base64Image, Base64.DEFAULT);
-        }
-        return null;
     }
 
     // 모든 식사 기록 가져오기
@@ -149,7 +126,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 COLUMN_MINUTE,
                 COLUMN_COST,
                 COLUMN_CALORIE,
-                COLUMN_IMAGE,
                 COLUMN_MEALTIME,
                 COLUMN_MEAL_TYPE // 새로운 열 추가
         };
@@ -181,7 +157,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             int mealMinuteIndex = cursor.getColumnIndex(COLUMN_MINUTE);
             int mealCostIndex = cursor.getColumnIndex(COLUMN_COST);
             int mealCalorieIndex = cursor.getColumnIndex(COLUMN_CALORIE);
-            int mealImageIndex = cursor.getColumnIndex(COLUMN_IMAGE);
             int mealtimeIndex = cursor.getColumnIndex(COLUMN_MEALTIME);
             int mealTypeIndex = cursor.getColumnIndex(COLUMN_MEAL_TYPE); // 새로운 열 추가
 
@@ -197,11 +172,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 String mealMinute = cursor.getString(mealMinuteIndex);
                 String mealCost = cursor.getString(mealCostIndex);
                 int mealCalorie = cursor.getInt(mealCalorieIndex);
-                byte[] mealImage = cursor.getBlob(mealImageIndex);
                 String mealtime = cursor.getString(mealtimeIndex);
                 String mealType = cursor.getString(mealTypeIndex); // 새로운 열 추가
 
-                Meal meal = new Meal(location, mealName, mealOpinion, mealYear, mealMonth, mealDay, mealHour, mealMinute, mealCost, mealCalorie, mealImage, mealtime, mealType);
+                Meal meal = new Meal(location, mealName, mealOpinion, mealYear, mealMonth, mealDay, mealHour, mealMinute, mealCost, mealCalorie, mealtime, mealType);
                 mealList.add(meal);
             } while (cursor.moveToNext());
 
@@ -231,7 +205,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 COLUMN_MINUTE,
                 COLUMN_COST,
                 COLUMN_CALORIE,
-                COLUMN_IMAGE,
                 COLUMN_MEALTIME,
                 COLUMN_MEAL_TYPE // 새로운 열 추가
         };
@@ -270,7 +243,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             int mealMinuteIndex = cursor.getColumnIndex(COLUMN_MINUTE);
             int mealCostIndex = cursor.getColumnIndex(COLUMN_COST);
             int mealCalorieIndex = cursor.getColumnIndex(COLUMN_CALORIE);
-            int mealImageIndex = cursor.getColumnIndex(COLUMN_IMAGE);
             int mealtimeIndex = cursor.getColumnIndex(COLUMN_MEALTIME);
             int mealTypeIndex = cursor.getColumnIndex(COLUMN_MEAL_TYPE); // 새로운 열 추가
 
@@ -286,11 +258,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 String mealMinute = cursor.getString(mealMinuteIndex);
                 String mealCost = cursor.getString(mealCostIndex);
                 int mealCalorie = cursor.getInt(mealCalorieIndex);
-                byte[] mealImage = cursor.getBlob(mealImageIndex);
                 String mealtime = cursor.getString(mealtimeIndex);
                 String mealType = cursor.getString(mealTypeIndex); // 새로운 열 추가
 
-                Meal meal = new Meal(location, mealName, mealOpinion, mealYear, mealMonth, mealDay, mealHour, mealMinute, mealCost, mealCalorie, mealImage, mealtime, mealType);
+                Meal meal = new Meal(location, mealName, mealOpinion, mealYear, mealMonth, mealDay, mealHour, mealMinute, mealCost, mealCalorie, mealtime, mealType);
                 mealList.add(meal);
             } while (cursor.moveToNext());
 

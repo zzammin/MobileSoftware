@@ -15,11 +15,10 @@ public class Meal implements Parcelable {
     private String minute;
     private String cost;
     private int calorie;
-    private byte[] image;
     private String mealtime;
     private String mealType;
 
-    public Meal(String location, String mealName, String mealOpinion, String year, String month, String day, String hour, String minute, String cost, int calorie, byte[] image, String mealtime, String mealType) {
+    public Meal(String location, String mealName, String mealOpinion, String year, String month, String day, String hour, String minute, String cost, int calorie, String mealtime, String mealType) {
         this.location = location;
         this.mealName = mealName;
         this.mealOpinion = mealOpinion;
@@ -30,7 +29,6 @@ public class Meal implements Parcelable {
         this.minute = minute;
         this.cost = cost;
         this.calorie = calorie;
-        this.image = image;
         this.mealtime = mealtime;
         this.mealType = mealType;
     }
@@ -46,7 +44,6 @@ public class Meal implements Parcelable {
         minute = in.readString();
         cost = in.readString();
         calorie = in.readInt();
-        image = in.createByteArray();
         mealtime = in.readString();
         mealType = in.readString(); // 새로운 필드 추가
     }
@@ -65,10 +62,6 @@ public class Meal implements Parcelable {
 
     public String getLocation() {
         return location;
-    }
-
-    public byte[] getImage() {
-        return image;
     }
 
     public String getMealName() {
@@ -132,7 +125,6 @@ public class Meal implements Parcelable {
         dest.writeString(minute);
         dest.writeString(cost);
         dest.writeInt(calorie);
-        dest.writeByteArray(image);
         dest.writeString(mealtime);
         dest.writeString(mealType); // 새로운 필드 추가
     }

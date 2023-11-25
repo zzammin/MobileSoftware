@@ -1,8 +1,16 @@
 package com.example.mobilesoftware;
 
+import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.StrictMode;
+import android.provider.MediaStore;
+import android.util.Base64;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,15 +22,19 @@ import android.widget.Spinner;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
+import com.bumptech.glide.Glide;
 import com.example.mobilesoftware.DatabaseHelper;
 
+import java.io.ByteArrayOutputStream;
 import java.util.Random;
 
 public class InputFragment extends Fragment {
 
-    private static final int REQUEST_STORAGE_PERMISSION = 1;
+    private static final int PICK_IMAGE_REQUEST = 1;
+
     String[] locationItems = {"상록원 1층", "상록원 2층", "상록원 3층", "기숙사 식당"};
     String[] mealTypeItems = {"식사", "음료"};
     Uri uri;
@@ -36,16 +48,11 @@ public class InputFragment extends Fragment {
     EditText hourEdit;
     EditText minuteEdit;
     EditText costEdit;
-    // 추가된 Calorie 변수
     int calorie;
 
     Spinner locationSpinner;
     Spinner mealTypeSpinner;
 
-    // 파일로 저장된 이미지의 경로
-    private static final int REQUEST_CODE = 0;
-
-    // DatabaseHelper 객체 추가
     private DatabaseHelper databaseHelper;
 
     @Override
@@ -79,11 +86,19 @@ public class InputFragment extends Fragment {
         hourEdit = rootView.findViewById(R.id.hour);
         minuteEdit = rootView.findViewById(R.id.minute);
         costEdit = rootView.findViewById(R.id.cost_edit);
-        // 추가된 Calorie 변수 초기화
         calorie = generateRandomCalorie();
 
-        // DatabaseHelper 초기화
         databaseHelper = new DatabaseHelper(requireContext());
+
+        imageView = rootView.findViewById(R.id.select_image);
+        Button selectImageBtn = rootView.findViewById(R.id.select_image_btn);
+
+        selectImageBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                openGallery();
+            }
+        });
 
         Button inputBtn = rootView.findViewById(R.id.input_btn);
         inputBtn.setOnClickListener(new View.OnClickListener() {
@@ -100,14 +115,12 @@ public class InputFragment extends Fragment {
                 String selectedLocation = locationSpinner.getSelectedItem().toString();
                 String selectedMealType = mealTypeSpinner.getSelectedItem().toString();
 
-                // 숫자 여부 확인 후 Toast 띄우기
                 if (!isNumeric(year) || !isNumeric(month) || !isNumeric(day) || !isNumeric(hour) || !isNumeric(minute) || !isNumeric(cost)) {
                     showToast("숫자로 입력해주세요");
-                    return;  // 숫자가 아니면 더 이상 진행하지 않음
+                    return;
                 }
 
-                // SQLite 데이터베이스에 데이터 추가
-                long result = databaseHelper.addMeal(selectedLocation, mealName, mealOpinion, year, month, day, hour, minute, cost, null, calorie,selectedMealType);
+                long result = databaseHelper.addMeal(selectedLocation, mealName, mealOpinion, year, month, day, hour, minute, cost, calorie, selectedMealType);
 
                 if (result != -1) {
                     showToast("식사 기록이 추가되었습니다.");
@@ -116,7 +129,35 @@ public class InputFragment extends Fragment {
                 }
             }
         });
+
         return rootView;
+    }
+
+    private void openGallery() {
+        Intent galleryIntent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+        startActivityForResult(galleryIntent, PICK_IMAGE_REQUEST);
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == PICK_IMAGE_REQUEST && resultCode == Activity.RESULT_OK && data != null && data.getData() != null) {
+            uri = data.getData();
+
+            Glide.with(this)
+                    .load(uri)
+                    .into(imageView);
+
+            // 이미지 경로를 SharedPreferences에 저장
+            saveImageUriToSharedPreferences(uri);
+        }
+    }
+
+    private void saveImageUriToSharedPreferences(Uri uri) {
+        SharedPreferences.Editor editor = requireActivity().getPreferences(Context.MODE_PRIVATE).edit();
+        editor.putString("imageUri", uri.toString());
+        editor.apply();
     }
 
     private boolean isNumeric(String str) {
@@ -132,15 +173,13 @@ public class InputFragment extends Fragment {
         Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show();
     }
 
-    // 랜덤한 칼로리 값 생성
     private int generateRandomCalorie() {
         Random random = new Random();
-        return random.nextInt(501) + 300; // 300에서 800 사이의 랜덤한 값
+        return random.nextInt(501) + 300;
     }
 
     @Override
     public void onDestroyView() {
-        // DatabaseHelper 사용 후 반드시 close
         if (databaseHelper != null) {
             databaseHelper.close();
         }

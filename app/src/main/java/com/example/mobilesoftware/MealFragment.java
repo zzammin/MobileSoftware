@@ -1,8 +1,11 @@
 package com.example.mobilesoftware;
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
@@ -62,7 +65,7 @@ public class MealFragment extends Fragment {
         textCost = rootView.findViewById(R.id.textCost);
         textCalorie = rootView.findViewById(R.id.textCalorie);
         textMealtime = rootView.findViewById(R.id.textMealtime);
-        textMealType = rootView.findViewById(R.id.textMealType); // Add this line
+        textMealType = rootView.findViewById(R.id.textMealType);
         imageView = rootView.findViewById(R.id.imageMeal);
 
         if (getArguments() != null) {
@@ -81,44 +84,32 @@ public class MealFragment extends Fragment {
                 textMealtime.setText("Mealtime: " + meal.getMealTime());
                 textMealType.setText("Meal Type: " + meal.getMealType());
 
-                Log.d("image",""+meal.getImage());
-
-//            if (meal.getImage() != null && meal.getImage().length > 0) {
-//                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-//                    checkAndRequestPermission();
-//                }
-//            }
+                // 이미지 불러오기 및 표시
+                loadAndDisplayImage();
             }
         }
-
 
         return rootView;
     }
 
-//    private void checkAndRequestPermission() {
-//        if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-//            ActivityCompat.requestPermissions(requireActivity(),
-//                    new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
-//                    REQUEST_STORAGE_PERMISSION);
-//        } else {
-//            loadImage();
-//        }
-//    }
+    private void loadAndDisplayImage() {
+        // SharedPreferences에서 이미지 경로 가져오기
+        SharedPreferences preferences = requireActivity().getPreferences(Context.MODE_PRIVATE);
+        String imageUriString = preferences.getString("imageUri", null);
 
-    private Bitmap byteArrayToBitmap(byte[] byteArray) {
-        return BitmapFactory.decodeByteArray(byteArray, 0, byteArray.length);
-    }
+        // 이미지 경로가 존재하면 Glide를 사용하여 이미지 표시
+        if (imageUriString != null) {
+            Uri imageUri = Uri.parse(imageUriString);
 
-    private void loadImage() {
-        Meal meal = getArguments().getParcelable(ARG_MEAL);
-        if (meal != null && meal.getImage() != null && meal.getImage().length > 0) {
-            String base64Image = new String(meal.getImage());
-            byte[] decodedImage = DatabaseHelper.decodeBase64ToByteArray(base64Image);
+            // Log.d를 사용하여 이미지 경로 확인
+            Log.d("Image", "Image URI: " + imageUriString);
 
-            Bitmap bitmap = byteArrayToBitmap(decodedImage);
-            imageView.setImageBitmap(bitmap);
+            Glide.with(this)
+                    .load(imageUri)
+                    .into(imageView);
         }
     }
+
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
@@ -126,13 +117,9 @@ public class MealFragment extends Fragment {
 
         if (requestCode == REQUEST_STORAGE_PERMISSION) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                loadImage();
+                // 이미지 불러오기
+                loadAndDisplayImage();
             }
         }
     }
 }
-
-
-
-
-
