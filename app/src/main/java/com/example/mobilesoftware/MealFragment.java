@@ -3,8 +3,6 @@ package com.example.mobilesoftware;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -12,6 +10,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
@@ -41,6 +40,9 @@ public class MealFragment extends Fragment {
     private TextView textMealtime;
     private TextView textMealType;
     private ImageView imageView;
+
+    // 이미지 URI를 저장할 변수 추가
+    private Uri imageUri;
 
     public static MealFragment newInstance(Meal meal) {
         MealFragment fragment = new MealFragment();
@@ -85,30 +87,32 @@ public class MealFragment extends Fragment {
                 textMealType.setText("Meal Type: " + meal.getMealType());
 
                 // 이미지 불러오기 및 표시
-                loadAndDisplayImage();
+                loadAndDisplayImage(meal);
             }
         }
 
         return rootView;
     }
 
-    private void loadAndDisplayImage() {
-        // SharedPreferences에서 이미지 경로 가져오기
+    // 이미지 불러오기 및 표시 메서드 수정
+    private void loadAndDisplayImage(Meal meal) {
+        // SharedPreferences에서 이미지 URI를 가져오기
         SharedPreferences preferences = requireActivity().getPreferences(Context.MODE_PRIVATE);
-        String imageUriString = preferences.getString("imageUri", null);
+        String mealName = meal.getMealName();
+        String imageUriString = preferences.getString("imageUri_" + mealName, null);
 
-        // 이미지 경로가 존재하면 Glide를 사용하여 이미지 표시
+        // 이미지 URI가 설정되어 있는지 확인
         if (imageUriString != null) {
-            Uri imageUri = Uri.parse(imageUriString);
+            imageUri = Uri.parse(imageUriString);
 
-            // Log.d를 사용하여 이미지 경로 확인
-            Log.d("Image", "Image URI: " + imageUriString);
+            Log.d("image",""+imageUri);
 
             Glide.with(this)
                     .load(imageUri)
                     .into(imageView);
         }
     }
+
 
 
     @Override
@@ -118,8 +122,9 @@ public class MealFragment extends Fragment {
         if (requestCode == REQUEST_STORAGE_PERMISSION) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 // 이미지 불러오기
-                loadAndDisplayImage();
+                loadAndDisplayImage((Meal) getArguments().getParcelable(ARG_MEAL));
             }
         }
     }
+
 }

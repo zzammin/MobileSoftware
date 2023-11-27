@@ -11,6 +11,7 @@ import android.os.Bundle;
 import android.os.StrictMode;
 import android.provider.MediaStore;
 import android.util.Base64;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -123,6 +124,21 @@ public class InputFragment extends Fragment {
                 long result = databaseHelper.addMeal(selectedLocation, mealName, mealOpinion, year, month, day, hour, minute, cost, calorie, selectedMealType);
 
                 if (result != -1) {
+                    // 식사를 성공적으로 추가한 후 입력 필드 지우기
+                    mealNameEdit.getText().clear();
+                    mealOpinionEdit.getText().clear();
+                    yearEdit.getText().clear();
+                    monthEdit.getText().clear();
+                    dayEdit.getText().clear();
+                    hourEdit.getText().clear();
+                    minuteEdit.getText().clear();
+                    costEdit.getText().clear();
+
+                    saveImageUriToSharedPreferences(uri, mealName);
+
+                    // 이미지 뷰 지우기
+                    imageView.setImageDrawable(null);
+
                     showToast("식사 기록이 추가되었습니다.");
                 } else {
                     showToast("식사 기록 추가 실패");
@@ -149,14 +165,13 @@ public class InputFragment extends Fragment {
                     .load(uri)
                     .into(imageView);
 
-            // 이미지 경로를 SharedPreferences에 저장
-            saveImageUriToSharedPreferences(uri);
         }
     }
 
-    private void saveImageUriToSharedPreferences(Uri uri) {
+    private void saveImageUriToSharedPreferences(Uri uri, String mealName) {
         SharedPreferences.Editor editor = requireActivity().getPreferences(Context.MODE_PRIVATE).edit();
-        editor.putString("imageUri", uri.toString());
+        String key = "imageUri_" + mealName; // mealName 정보를 활용하여 key 생성
+        editor.putString(key, uri.toString());
         editor.apply();
     }
 
