@@ -17,8 +17,9 @@ public class Meal implements Parcelable {
     private int calorie;
     private String mealtime;
     private String mealType;
+    private String mealImageUri; // 이미지 URI 필드 추가
 
-    public Meal(String location, String mealName, String mealOpinion, String year, String month, String day, String hour, String minute, String cost, int calorie, String mealtime, String mealType) {
+    public Meal(String location, String mealName, String mealOpinion, String year, String month, String day, String hour, String minute, String cost, int calorie, String mealtime, String mealType, String mealImageUri) {
         this.location = location;
         this.mealName = mealName;
         this.mealOpinion = mealOpinion;
@@ -31,6 +32,7 @@ public class Meal implements Parcelable {
         this.calorie = calorie;
         this.mealtime = mealtime;
         this.mealType = mealType;
+        this.mealImageUri = mealImageUri; // 이미지 URI 필드 추가
     }
 
     protected Meal(Parcel in) {
@@ -45,7 +47,8 @@ public class Meal implements Parcelable {
         cost = in.readString();
         calorie = in.readInt();
         mealtime = in.readString();
-        mealType = in.readString(); // 새로운 필드 추가
+        mealType = in.readString();
+        mealImageUri = in.readString(); // 이미지 URI 필드 추가
     }
 
     public static final Creator<Meal> CREATOR = new Creator<Meal>() {
@@ -116,6 +119,10 @@ public class Meal implements Parcelable {
         return mealType;
     }
 
+    public String getMealImageUri() {
+        return mealImageUri;
+    } // 이미지 URI Getter 추가
+
     @Override
     public int describeContents() {
         return 0;
@@ -134,6 +141,7 @@ public class Meal implements Parcelable {
         dest.writeString(cost);
         dest.writeInt(calorie);
         dest.writeString(mealtime);
-        dest.writeString(mealType); // 새로운 필드 추가
+        dest.writeString(mealType);
+        dest.writeString(mealImageUri); // 이미지 URI 필드 추가
     }
 }

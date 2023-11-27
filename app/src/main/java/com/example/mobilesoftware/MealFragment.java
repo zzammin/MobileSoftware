@@ -1,31 +1,20 @@
 package com.example.mobilesoftware;
 
-import android.content.Context;
-import android.content.SharedPreferences;
-import android.content.pm.PackageManager;
-import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import com.bumptech.glide.Glide;
-import java.util.Calendar;
-import java.util.List;
 
 public class MealFragment extends Fragment {
 
     private static final String ARG_MEAL = "argMeal";
-    private static final int REQUEST_STORAGE_PERMISSION = 1;
 
     private TextView textLocation;
     private TextView textMealName;
@@ -42,7 +31,7 @@ public class MealFragment extends Fragment {
     private ImageView imageView;
 
     // 이미지 URI를 저장할 변수 추가
-    private Uri imageUri;
+    private String imageUriString;
 
     public static MealFragment newInstance(Meal meal) {
         MealFragment fragment = new MealFragment();
@@ -86,7 +75,7 @@ public class MealFragment extends Fragment {
                 textMealtime.setText("Mealtime: " + meal.getMealTime());
                 textMealType.setText("Meal Type: " + meal.getMealType());
 
-                // 이미지 불러오기 및 표시
+                // 데이터베이스에서 이미지 URI를 가져와서 표시
                 loadAndDisplayImage(meal);
             }
         }
@@ -96,35 +85,14 @@ public class MealFragment extends Fragment {
 
     // 이미지 불러오기 및 표시 메서드 수정
     private void loadAndDisplayImage(Meal meal) {
-        // SharedPreferences에서 이미지 URI를 가져오기
-        SharedPreferences preferences = requireActivity().getPreferences(Context.MODE_PRIVATE);
-        String mealName = meal.getMealName();
-        String imageUriString = preferences.getString("imageUri_" + mealName, null);
+        // 데이터베이스에서 이미지 URI를 가져오기
+        imageUriString = meal.getMealImageUri();
 
         // 이미지 URI가 설정되어 있는지 확인
-        if (imageUriString != null) {
-            imageUri = Uri.parse(imageUriString);
-
-            Log.d("image",""+imageUri);
-
+        if (imageUriString != null && !imageUriString.isEmpty()) {
             Glide.with(this)
-                    .load(imageUri)
+                    .load(imageUriString)
                     .into(imageView);
         }
     }
-
-
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-
-        if (requestCode == REQUEST_STORAGE_PERMISSION) {
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                // 이미지 불러오기
-                loadAndDisplayImage((Meal) getArguments().getParcelable(ARG_MEAL));
-            }
-        }
-    }
-
 }

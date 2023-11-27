@@ -1,17 +1,10 @@
 package com.example.mobilesoftware;
 
 import android.app.Activity;
-import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.StrictMode;
 import android.provider.MediaStore;
-import android.util.Base64;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -27,16 +20,14 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
 import com.bumptech.glide.Glide;
-import com.example.mobilesoftware.DatabaseHelper;
 
-import java.io.ByteArrayOutputStream;
 import java.util.Random;
 
 public class InputFragment extends Fragment {
 
     private static final int PICK_IMAGE_REQUEST = 1;
 
-    String[] locationItems = {"상록원 1층", "상록원 2층", "상록원 3층", "기숙사 식당"};
+    String[] locationItems = {"상록원 1층", "상록원 2층", "상록원 3층", "기숙사 식당","가든쿡","가온누리","카페ing","두리터","블루포트","그루터기"};
     String[] mealTypeItems = {"식사", "음료"};
     Uri uri;
     ImageView imageView;
@@ -121,7 +112,7 @@ public class InputFragment extends Fragment {
                     return;
                 }
 
-                long result = databaseHelper.addMeal(selectedLocation, mealName, mealOpinion, year, month, day, hour, minute, cost, calorie, selectedMealType);
+                long result = databaseHelper.addMeal(selectedLocation, mealName, mealOpinion, year, month, day, hour, minute, cost, calorie, selectedMealType, uri.toString());
 
                 if (result != -1) {
                     // 식사를 성공적으로 추가한 후 입력 필드 지우기
@@ -133,8 +124,6 @@ public class InputFragment extends Fragment {
                     hourEdit.getText().clear();
                     minuteEdit.getText().clear();
                     costEdit.getText().clear();
-
-                    saveImageUriToSharedPreferences(uri, mealName);
 
                     // 이미지 뷰 지우기
                     imageView.setImageDrawable(null);
@@ -164,15 +153,7 @@ public class InputFragment extends Fragment {
             Glide.with(this)
                     .load(uri)
                     .into(imageView);
-
         }
-    }
-
-    private void saveImageUriToSharedPreferences(Uri uri, String mealName) {
-        SharedPreferences.Editor editor = requireActivity().getPreferences(Context.MODE_PRIVATE).edit();
-        String key = "imageUri_" + mealName; // mealName 정보를 활용하여 key 생성
-        editor.putString(key, uri.toString());
-        editor.apply();
     }
 
     private boolean isNumeric(String str) {
