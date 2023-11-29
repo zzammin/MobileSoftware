@@ -207,13 +207,17 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 COLUMN_MONTH + " = ? AND " +
                 COLUMN_DAY + " >= ?) OR (" +
                 COLUMN_YEAR + " = ? AND " +
+                COLUMN_MONTH + " > ?) OR (" +
+                COLUMN_YEAR + " = ? AND " +
                 COLUMN_MONTH + " = ? AND " +
                 COLUMN_DAY + " <= ?)";
 
         String[] selectionArgs = {
                 String.valueOf(startYear), String.valueOf(startMonth), String.valueOf(startDay),
+                String.valueOf(startYear), String.valueOf(startMonth),
                 String.valueOf(endYear), String.valueOf(endMonth), String.valueOf(endDay)
         };
+
 
         Cursor cursor = db.query(
                 TABLE_MEALS,

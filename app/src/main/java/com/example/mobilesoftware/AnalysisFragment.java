@@ -74,6 +74,9 @@ public class AnalysisFragment extends Fragment {
         // 해당 날짜부터 현재까지의 식사 데이터 가져오기
         List<Meal> mealsForLastMonth = databaseHelper.getMealsForDateRange(lastMonthYear, lastMonthMonth, lastMonthDay, currentYear, currentMonth, currentDay);
 
+        // 검색된 식사의 개수를 로그로 표시
+        Log.d("AnalysisFragment", "지난 달 총 식사 칼로리 수: " + mealsForLastMonth.size());
+
         // 칼로리 합산
         int totalCalories = 0;
         for (Meal meal : mealsForLastMonth) {
@@ -106,6 +109,9 @@ public class AnalysisFragment extends Fragment {
 
         // 해당 날짜부터 현재까지의 식사 데이터 가져오기
         List<Meal> mealsForLastMonth = databaseHelper.getMealsForDateRange(lastMonthYear, lastMonthMonth, lastMonthDay, currentYear, currentMonth, currentDay);
+
+        // 검색된 식사의 개수를 로그로 표시
+        Log.d("AnalysisFragment", "지난 달 총 식사 비용 수: " + mealsForLastMonth.size());
 
         // 각 식사 종류에 따른 비용 합산
         int totalBreakfastCost = 0;
